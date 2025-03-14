@@ -10,12 +10,16 @@ public class EmployeeManagementSystem extends JFrame {
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "password";
     
-    private JButton attendanceBtn, timesheetBtn, trainingsBtn, viewReportsBtn;
+    private JButton attendanceBtn, timesheetBtn, trainingsBtn, viewReportsBtn, logoutBtn;
     private Connection connection;
+    private int employeeId = 1; // Default employee ID, should be set after login
+    private String employeeName = "";
     
-    public EmployeeManagementSystem() {
-        initializeUI();
+    public EmployeeManagementSystem(int employeeId) {
+        this.employeeId = employeeId;
         connectToDatabase();
+        fetchEmployeeName();
+        initializeUI();
     }
     
     private void connectToDatabase() {
@@ -29,67 +33,156 @@ public class EmployeeManagementSystem extends JFrame {
         }
     }
     
+    private void fetchEmployeeName() {
+        try {
+            String query = "SELECT full_name FROM employees WHERE id = ?";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setInt(1, employeeId);
+            ResultSet resultSet = statement.executeQuery();
+            
+            if (resultSet.next()) {
+                employeeName = resultSet.getString("full_name");
+            } else {
+                employeeName = "User"; // Default name if not found
+            }
+            
+            resultSet.close();
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            employeeName = "User"; // Default name on error
+        }
+    }
+    
     private void initializeUI() {
-        setTitle("Employee Management System");
-        setSize(500, 300);
+        setTitle("Employee Portal");
+        setSize(350, 600); // Mobile-like dimensions
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
-        JPanel mainPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+        // Main panel with vertical layout
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(new Color(240, 240, 240)); // Light gray background
+        
+        // Welcome label
+        JLabel welcomeLabel = new JLabel("Welcome, Mr. " + employeeName);
+        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        welcomeLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         
         // Create buttons
         attendanceBtn = createButton("Attendance");
         timesheetBtn = createButton("Timesheet");
         trainingsBtn = createButton("Trainings");
         viewReportsBtn = createButton("View Reports");
+        logoutBtn = createButton("Logout");
         
-        // Add buttons to the panel
-        mainPanel.add(attendanceBtn);
-        mainPanel.add(timesheetBtn);
-        mainPanel.add(trainingsBtn);
-        mainPanel.add(viewReportsBtn);
+        // Style the logout button differently
+        logoutBtn.setBackground(new Color(220, 53, 69)); // Red color
+        logoutBtn.setForeground(Color.WHITE);
         
         // Add action listeners
         attendanceBtn.addActionListener(e -> showAttendanceDialog());
         timesheetBtn.addActionListener(e -> showTimesheetDialog());
         trainingsBtn.addActionListener(e -> showTrainingsDialog());
         viewReportsBtn.addActionListener(e -> showReportsFrame());
+        logoutBtn.addActionListener(e -> logout());
         
-        add(mainPanel);
+        // Add components to panel with spacing
+        mainPanel.add(welcomeLabel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        mainPanel.add(attendanceBtn);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        mainPanel.add(timesheetBtn);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        mainPanel.add(trainingsBtn);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        mainPanel.add(viewReportsBtn);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+        mainPanel.add(logoutBtn);
+        
+        // Add a scrollpane in case the screen is too small
+        JScrollPane scrollPane = new JScrollPane(mainPanel);
+        scrollPane.setBorder(null);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        
+        add(scrollPane);
     }
     
     private JButton createButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font("Arial", Font.BOLD, 16));
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        button.setMaximumSize(new Dimension(300, 50));
+        button.setPreferredSize(new Dimension(300, 50));
+        
+        // Style the button to look more mobile-like
+        button.setBackground(new Color(13, 110, 253)); // Bootstrap primary blue
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+        
         return button;
+    }
+    
+    private void logout() {
+        int choice = JOptionPane.showConfirmDialog(this, 
+                                                  "Are you sure you want to logout?", 
+                                                  "Confirm Logout", 
+                                                  JOptionPane.YES_NO_OPTION);
+        if (choice == JOptionPane.YES_OPTION) {
+            dispose();
+            // Here you would typically redirect to the login screen
+            System.out.println("User logged out. Redirecting to login screen...");
+            // Example of how to show login screen:
+            // LoginScreen loginScreen = new LoginScreen();
+            // loginScreen.setVisible(true);
+        }
     }
     
     private void showAttendanceDialog() {
         JDialog dialog = new JDialog(this, "Attendance", true);
-        dialog.setSize(300, 200);
+        dialog.setSize(300, 250);
         dialog.setLocationRelativeTo(this);
         
-        JPanel panel = new JPanel(new GridLayout(4, 1, 5, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        panel.setBackground(new Color(240, 240, 240));
         
         JLabel label = new JLabel("Where are you working from today?");
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        label.setFont(new Font("Arial", Font.BOLD, 14));
         panel.add(label);
+        panel.add(Box.createRigidArea(new Dimension(0, 15)));
         
         ButtonGroup group = new ButtonGroup();
-        JRadioButton homeBtn = new JRadioButton("Home");
-        JRadioButton officeBtn = new JRadioButton("Office");
-        JRadioButton leaveBtn = new JRadioButton("Leave");
+        JRadioButton homeBtn = createRadioButton("Home");
+        JRadioButton officeBtn = createRadioButton("Office");
+        JRadioButton leaveBtn = createRadioButton("Leave");
         
         group.add(homeBtn);
         group.add(officeBtn);
         group.add(leaveBtn);
         
         panel.add(homeBtn);
+        panel.add(Box.createRigidArea(new Dimension(0, 10)));
         panel.add(officeBtn);
+        panel.add(Box.createRigidArea(new Dimension(0, 10)));
         panel.add(leaveBtn);
+        panel.add(Box.createRigidArea(new Dimension(0, 15)));
         
         JButton submitBtn = new JButton("Submit");
+        submitBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        submitBtn.setMaximumSize(new Dimension(200, 40));
+        submitBtn.setBackground(new Color(13, 110, 253));
+        submitBtn.setForeground(Color.WHITE);
+        submitBtn.setFocusPainted(false);
+        
         submitBtn.addActionListener(e -> {
             int code = 0;
             if (homeBtn.isSelected()) {
@@ -114,20 +207,42 @@ public class EmployeeManagementSystem extends JFrame {
         dialog.setVisible(true);
     }
     
+    private JRadioButton createRadioButton(String text) {
+        JRadioButton radioButton = new JRadioButton(text);
+        radioButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        radioButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        radioButton.setMaximumSize(new Dimension(200, 30));
+        radioButton.setBackground(new Color(240, 240, 240));
+        return radioButton;
+    }
+    
     private void showTimesheetDialog() {
         JDialog dialog = new JDialog(this, "Timesheet", true);
-        dialog.setSize(300, 150);
+        dialog.setSize(300, 200);
         dialog.setLocationRelativeTo(this);
         
-        JPanel panel = new JPanel(new GridLayout(3, 1, 5, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        panel.setBackground(new Color(240, 240, 240));
         
         JLabel label = new JLabel("Did you fill your timesheet today?");
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        label.setFont(new Font("Arial", Font.BOLD, 14));
         panel.add(label);
+        panel.add(Box.createRigidArea(new Dimension(0, 20)));
         
-        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+        buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        buttonPanel.setBackground(new Color(240, 240, 240));
+        
         JButton yesBtn = new JButton("YES");
         JButton noBtn = new JButton("NO");
+        
+        // Style the buttons
+        styleOptionButton(yesBtn, new Color(25, 135, 84)); // Green for YES
+        styleOptionButton(noBtn, new Color(220, 53, 69)); // Red for NO
         
         yesBtn.addActionListener(e -> {
             saveTimesheetRecord(1);
@@ -140,27 +255,51 @@ public class EmployeeManagementSystem extends JFrame {
         });
         
         buttonPanel.add(yesBtn);
+        buttonPanel.add(Box.createRigidArea(new Dimension(20, 0)));
         buttonPanel.add(noBtn);
-        panel.add(buttonPanel);
         
+        panel.add(buttonPanel);
         dialog.add(panel);
         dialog.setVisible(true);
     }
     
+    private void styleOptionButton(JButton button, Color color) {
+        button.setPreferredSize(new Dimension(100, 40));
+        button.setMaximumSize(new Dimension(100, 40));
+        button.setBackground(color);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+    }
+    
     private void showTrainingsDialog() {
         JDialog dialog = new JDialog(this, "Trainings", true);
-        dialog.setSize(300, 150);
+        dialog.setSize(300, 200);
         dialog.setLocationRelativeTo(this);
         
-        JPanel panel = new JPanel(new GridLayout(3, 1, 5, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        panel.setBackground(new Color(240, 240, 240));
         
         JLabel label = new JLabel("Did you complete your training today?");
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        label.setFont(new Font("Arial", Font.BOLD, 14));
         panel.add(label);
+        panel.add(Box.createRigidArea(new Dimension(0, 20)));
         
-        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+        buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        buttonPanel.setBackground(new Color(240, 240, 240));
+        
         JButton yesBtn = new JButton("YES");
         JButton noBtn = new JButton("NO");
+        
+        // Style the buttons
+        styleOptionButton(yesBtn, new Color(25, 135, 84)); // Green for YES
+        styleOptionButton(noBtn, new Color(220, 53, 69)); // Red for NO
         
         yesBtn.addActionListener(e -> {
             saveTrainingRecord(1);
@@ -173,16 +312,17 @@ public class EmployeeManagementSystem extends JFrame {
         });
         
         buttonPanel.add(yesBtn);
+        buttonPanel.add(Box.createRigidArea(new Dimension(20, 0)));
         buttonPanel.add(noBtn);
-        panel.add(buttonPanel);
         
+        panel.add(buttonPanel);
         dialog.add(panel);
         dialog.setVisible(true);
     }
     
     private void showReportsFrame() {
         JFrame reportsFrame = new JFrame("View Reports");
-        reportsFrame.setSize(800, 600);
+        reportsFrame.setSize(350, 600); // Mobile-like dimensions
         reportsFrame.setLocationRelativeTo(this);
         
         JTabbedPane tabbedPane = new JTabbedPane();
@@ -199,18 +339,23 @@ public class EmployeeManagementSystem extends JFrame {
     private JPanel createAttendanceReportPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         
-        String[] columns = {"Date", "Employee ID", "Status"};
+        String[] columns = {"Date", "Status"};
         DefaultTableModel model = new DefaultTableModel(columns, 0);
-        JTable table = new JTable(model);
+        JTable table = new JTable(model) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make table cells not editable
+            }
+        };
         
         try {
-            String query = "SELECT date, employee_id, status FROM attendance ORDER BY date DESC";
+            String query = "SELECT date, status FROM attendance WHERE employee_id = ? ORDER BY date DESC";
             PreparedStatement statement = connection.prepareStatement(query);
+            statement.setInt(1, employeeId);
             ResultSet resultSet = statement.executeQuery();
             
             while (resultSet.next()) {
-                String date = resultSet.getString("date");
-                String employeeId = resultSet.getString("employee_id");
+            String date = resultSet.getString("date");
                 int status = resultSet.getInt("status");
                 
                 String statusText = switch (status) {
@@ -220,7 +365,7 @@ public class EmployeeManagementSystem extends JFrame {
                     default -> "Unknown";
                 };
                 
-                model.addRow(new Object[]{date, employeeId, statusText});
+                model.addRow(new Object[]{date, statusText});
             }
             
             resultSet.close();
@@ -234,24 +379,36 @@ public class EmployeeManagementSystem extends JFrame {
         JScrollPane scrollPane = new JScrollPane(table);
         panel.add(scrollPane, BorderLayout.CENTER);
         
+        // Add a back button
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(e -> {
+            SwingUtilities.getWindowAncestor(panel).dispose();
+        });
+        panel.add(backButton, BorderLayout.SOUTH);
+        
         return panel;
     }
     
     private JPanel createTimesheetReportPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         
-        String[] columns = {"Date", "Employee ID", "Status"};
+        String[] columns = {"Date", "Status"};
         DefaultTableModel model = new DefaultTableModel(columns, 0);
-        JTable table = new JTable(model);
+        JTable table = new JTable(model) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make table cells not editable
+            }
+        };
         
         try {
-            String query = "SELECT date, employee_id, status FROM timesheet ORDER BY date DESC";
+            String query = "SELECT date, status FROM timesheet WHERE employee_id = ? ORDER BY date DESC";
             PreparedStatement statement = connection.prepareStatement(query);
+            statement.setInt(1, employeeId);
             ResultSet resultSet = statement.executeQuery();
             
             while (resultSet.next()) {
                 String date = resultSet.getString("date");
-                String employeeId = resultSet.getString("employee_id");
                 int status = resultSet.getInt("status");
                 
                 String statusText = switch (status) {
@@ -260,7 +417,7 @@ public class EmployeeManagementSystem extends JFrame {
                     default -> "Unknown";
                 };
                 
-                model.addRow(new Object[]{date, employeeId, statusText});
+                model.addRow(new Object[]{date, statusText});
             }
             
             resultSet.close();
@@ -274,24 +431,36 @@ public class EmployeeManagementSystem extends JFrame {
         JScrollPane scrollPane = new JScrollPane(table);
         panel.add(scrollPane, BorderLayout.CENTER);
         
+        // Add a back button
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(e -> {
+            SwingUtilities.getWindowAncestor(panel).dispose();
+        });
+        panel.add(backButton, BorderLayout.SOUTH);
+        
         return panel;
     }
     
     private JPanel createTrainingsReportPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         
-        String[] columns = {"Date", "Employee ID", "Status"};
+        String[] columns = {"Date", "Status"};
         DefaultTableModel model = new DefaultTableModel(columns, 0);
-        JTable table = new JTable(model);
+        JTable table = new JTable(model) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make table cells not editable
+            }
+        };
         
         try {
-            String query = "SELECT date, employee_id, status FROM trainings ORDER BY date DESC";
+            String query = "SELECT date, status FROM trainings WHERE employee_id = ? ORDER BY date DESC";
             PreparedStatement statement = connection.prepareStatement(query);
+            statement.setInt(1, employeeId);
             ResultSet resultSet = statement.executeQuery();
             
             while (resultSet.next()) {
                 String date = resultSet.getString("date");
-                String employeeId = resultSet.getString("employee_id");
                 int status = resultSet.getInt("status");
                 
                 String statusText = switch (status) {
@@ -300,7 +469,7 @@ public class EmployeeManagementSystem extends JFrame {
                     default -> "Unknown";
                 };
                 
-                model.addRow(new Object[]{date, employeeId, statusText});
+                model.addRow(new Object[]{date, statusText});
             }
             
             resultSet.close();
@@ -314,6 +483,13 @@ public class EmployeeManagementSystem extends JFrame {
         JScrollPane scrollPane = new JScrollPane(table);
         panel.add(scrollPane, BorderLayout.CENTER);
         
+        // Add a back button
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(e -> {
+            SwingUtilities.getWindowAncestor(panel).dispose();
+        });
+        panel.add(backButton, BorderLayout.SOUTH);
+        
         return panel;
     }
     
@@ -321,7 +497,7 @@ public class EmployeeManagementSystem extends JFrame {
         try {
             String query = "INSERT INTO attendance (employee_id, status, date) VALUES (?, ?, CURRENT_DATE())";
             PreparedStatement statement = connection.prepareStatement(query);
-            statement.setInt(1, 1); // Assuming employee ID 1 for demo
+            statement.setInt(1, employeeId);
             statement.setInt(2, code);
             statement.executeUpdate();
             statement.close();
@@ -339,7 +515,7 @@ public class EmployeeManagementSystem extends JFrame {
         try {
             String query = "INSERT INTO timesheet (employee_id, status, date) VALUES (?, ?, CURRENT_DATE())";
             PreparedStatement statement = connection.prepareStatement(query);
-            statement.setInt(1, 1); // Assuming employee ID 1 for demo
+            statement.setInt(1, employeeId);
             statement.setInt(2, code);
             statement.executeUpdate();
             statement.close();
@@ -357,7 +533,7 @@ public class EmployeeManagementSystem extends JFrame {
         try {
             String query = "INSERT INTO trainings (employee_id, status, date) VALUES (?, ?, CURRENT_DATE())";
             PreparedStatement statement = connection.prepareStatement(query);
-            statement.setInt(1, 1); // Assuming employee ID 1 for demo
+            statement.setInt(1, employeeId);
             statement.setInt(2, code);
             statement.executeUpdate();
             statement.close();
@@ -380,7 +556,9 @@ public class EmployeeManagementSystem extends JFrame {
         }
         
         SwingUtilities.invokeLater(() -> {
-            EmployeeManagementSystem app = new EmployeeManagementSystem();
+            // In practice, this would be called after successful login
+            // with the actual employee ID passed from the login screen
+            EmployeeManagementSystem app = new EmployeeManagementSystem(1);
             app.setVisible(true);
         });
     }
