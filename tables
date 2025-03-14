@@ -23,3 +23,55 @@ CREATE TABLE IF NOT EXISTS trainings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     employee_id INT NOT NULL,
     status INT NOT NULL COMMENT '1=YES
+
+
+
+
+
+-- Create database
+CREATE DATABASE IF NOT EXISTS employee_db;
+USE employee_db;
+
+-- Create employees table
+CREATE TABLE IF NOT EXISTS employees (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100),
+    department VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert sample employee
+INSERT INTO employees (username, password, full_name, email, department) 
+VALUES ('user1', 'password123', 'John Doe', 'john.doe@example.com', 'IT')
+ON DUPLICATE KEY UPDATE id=id;
+
+-- Create tables for tracking
+CREATE TABLE IF NOT EXISTS attendance (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    status INT NOT NULL COMMENT '1=Home, 2=Office, 3=Leave',
+    date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES employees(id)
+);
+
+CREATE TABLE IF NOT EXISTS timesheet (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    status INT NOT NULL COMMENT '1=YES, 2=NO',
+    date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES employees(id)
+);
+
+CREATE TABLE IF NOT EXISTS trainings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    status INT NOT NULL COMMENT '1=YES, 2=NO',
+    date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES employees(id)
+);
