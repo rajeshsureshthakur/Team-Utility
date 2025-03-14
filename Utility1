@@ -1,0 +1,387 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import javax.swing.table.DefaultTableModel;
+
+public class EmployeeManagementSystem extends JFrame {
+    // Database connection parameters
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/employee_db";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "password";
+    
+    private JButton attendanceBtn, timesheetBtn, trainingsBtn, viewReportsBtn;
+    private Connection connection;
+    
+    public EmployeeManagementSystem() {
+        initializeUI();
+        connectToDatabase();
+    }
+    
+    private void connectToDatabase() {
+        try {
+            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            System.out.println("Connected to database successfully");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage(), 
+                                         "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void initializeUI() {
+        setTitle("Employee Management System");
+        setSize(500, 300);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        
+        JPanel mainPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Create buttons
+        attendanceBtn = createButton("Attendance");
+        timesheetBtn = createButton("Timesheet");
+        trainingsBtn = createButton("Trainings");
+        viewReportsBtn = createButton("View Reports");
+        
+        // Add buttons to the panel
+        mainPanel.add(attendanceBtn);
+        mainPanel.add(timesheetBtn);
+        mainPanel.add(trainingsBtn);
+        mainPanel.add(viewReportsBtn);
+        
+        // Add action listeners
+        attendanceBtn.addActionListener(e -> showAttendanceDialog());
+        timesheetBtn.addActionListener(e -> showTimesheetDialog());
+        trainingsBtn.addActionListener(e -> showTrainingsDialog());
+        viewReportsBtn.addActionListener(e -> showReportsFrame());
+        
+        add(mainPanel);
+    }
+    
+    private JButton createButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, 16));
+        return button;
+    }
+    
+    private void showAttendanceDialog() {
+        JDialog dialog = new JDialog(this, "Attendance", true);
+        dialog.setSize(300, 200);
+        dialog.setLocationRelativeTo(this);
+        
+        JPanel panel = new JPanel(new GridLayout(4, 1, 5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        JLabel label = new JLabel("Where are you working from today?");
+        panel.add(label);
+        
+        ButtonGroup group = new ButtonGroup();
+        JRadioButton homeBtn = new JRadioButton("Home");
+        JRadioButton officeBtn = new JRadioButton("Office");
+        JRadioButton leaveBtn = new JRadioButton("Leave");
+        
+        group.add(homeBtn);
+        group.add(officeBtn);
+        group.add(leaveBtn);
+        
+        panel.add(homeBtn);
+        panel.add(officeBtn);
+        panel.add(leaveBtn);
+        
+        JButton submitBtn = new JButton("Submit");
+        submitBtn.addActionListener(e -> {
+            int code = 0;
+            if (homeBtn.isSelected()) {
+                code = 1;
+            } else if (officeBtn.isSelected()) {
+                code = 2;
+            } else if (leaveBtn.isSelected()) {
+                code = 3;
+            }
+            
+            if (code > 0) {
+                saveAttendanceRecord(code);
+                dialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(dialog, "Please select an option", 
+                                             "Selection Required", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+        
+        panel.add(submitBtn);
+        dialog.add(panel);
+        dialog.setVisible(true);
+    }
+    
+    private void showTimesheetDialog() {
+        JDialog dialog = new JDialog(this, "Timesheet", true);
+        dialog.setSize(300, 150);
+        dialog.setLocationRelativeTo(this);
+        
+        JPanel panel = new JPanel(new GridLayout(3, 1, 5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        JLabel label = new JLabel("Did you fill your timesheet today?");
+        panel.add(label);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JButton yesBtn = new JButton("YES");
+        JButton noBtn = new JButton("NO");
+        
+        yesBtn.addActionListener(e -> {
+            saveTimesheetRecord(1);
+            dialog.dispose();
+        });
+        
+        noBtn.addActionListener(e -> {
+            saveTimesheetRecord(2);
+            dialog.dispose();
+        });
+        
+        buttonPanel.add(yesBtn);
+        buttonPanel.add(noBtn);
+        panel.add(buttonPanel);
+        
+        dialog.add(panel);
+        dialog.setVisible(true);
+    }
+    
+    private void showTrainingsDialog() {
+        JDialog dialog = new JDialog(this, "Trainings", true);
+        dialog.setSize(300, 150);
+        dialog.setLocationRelativeTo(this);
+        
+        JPanel panel = new JPanel(new GridLayout(3, 1, 5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        JLabel label = new JLabel("Did you complete your training today?");
+        panel.add(label);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JButton yesBtn = new JButton("YES");
+        JButton noBtn = new JButton("NO");
+        
+        yesBtn.addActionListener(e -> {
+            saveTrainingRecord(1);
+            dialog.dispose();
+        });
+        
+        noBtn.addActionListener(e -> {
+            saveTrainingRecord(2);
+            dialog.dispose();
+        });
+        
+        buttonPanel.add(yesBtn);
+        buttonPanel.add(noBtn);
+        panel.add(buttonPanel);
+        
+        dialog.add(panel);
+        dialog.setVisible(true);
+    }
+    
+    private void showReportsFrame() {
+        JFrame reportsFrame = new JFrame("View Reports");
+        reportsFrame.setSize(800, 600);
+        reportsFrame.setLocationRelativeTo(this);
+        
+        JTabbedPane tabbedPane = new JTabbedPane();
+        
+        // Add tabs for different reports
+        tabbedPane.addTab("Attendance", createAttendanceReportPanel());
+        tabbedPane.addTab("Timesheet", createTimesheetReportPanel());
+        tabbedPane.addTab("Trainings", createTrainingsReportPanel());
+        
+        reportsFrame.add(tabbedPane);
+        reportsFrame.setVisible(true);
+    }
+    
+    private JPanel createAttendanceReportPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        
+        String[] columns = {"Date", "Employee ID", "Status"};
+        DefaultTableModel model = new DefaultTableModel(columns, 0);
+        JTable table = new JTable(model);
+        
+        try {
+            String query = "SELECT date, employee_id, status FROM attendance ORDER BY date DESC";
+            PreparedStatement statement = connection.prepareStatement(query);
+            ResultSet resultSet = statement.executeQuery();
+            
+            while (resultSet.next()) {
+                String date = resultSet.getString("date");
+                String employeeId = resultSet.getString("employee_id");
+                int status = resultSet.getInt("status");
+                
+                String statusText = switch (status) {
+                    case 1 -> "Home";
+                    case 2 -> "Office";
+                    case 3 -> "Leave";
+                    default -> "Unknown";
+                };
+                
+                model.addRow(new Object[]{date, employeeId, statusText});
+            }
+            
+            resultSet.close();
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(panel, "Error loading attendance data: " + e.getMessage(),
+                                         "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+        
+        JScrollPane scrollPane = new JScrollPane(table);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        
+        return panel;
+    }
+    
+    private JPanel createTimesheetReportPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        
+        String[] columns = {"Date", "Employee ID", "Status"};
+        DefaultTableModel model = new DefaultTableModel(columns, 0);
+        JTable table = new JTable(model);
+        
+        try {
+            String query = "SELECT date, employee_id, status FROM timesheet ORDER BY date DESC";
+            PreparedStatement statement = connection.prepareStatement(query);
+            ResultSet resultSet = statement.executeQuery();
+            
+            while (resultSet.next()) {
+                String date = resultSet.getString("date");
+                String employeeId = resultSet.getString("employee_id");
+                int status = resultSet.getInt("status");
+                
+                String statusText = switch (status) {
+                    case 1 -> "YES";
+                    case 2 -> "NO";
+                    default -> "Unknown";
+                };
+                
+                model.addRow(new Object[]{date, employeeId, statusText});
+            }
+            
+            resultSet.close();
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(panel, "Error loading timesheet data: " + e.getMessage(),
+                                         "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+        
+        JScrollPane scrollPane = new JScrollPane(table);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        
+        return panel;
+    }
+    
+    private JPanel createTrainingsReportPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        
+        String[] columns = {"Date", "Employee ID", "Status"};
+        DefaultTableModel model = new DefaultTableModel(columns, 0);
+        JTable table = new JTable(model);
+        
+        try {
+            String query = "SELECT date, employee_id, status FROM trainings ORDER BY date DESC";
+            PreparedStatement statement = connection.prepareStatement(query);
+            ResultSet resultSet = statement.executeQuery();
+            
+            while (resultSet.next()) {
+                String date = resultSet.getString("date");
+                String employeeId = resultSet.getString("employee_id");
+                int status = resultSet.getInt("status");
+                
+                String statusText = switch (status) {
+                    case 1 -> "YES";
+                    case 2 -> "NO";
+                    default -> "Unknown";
+                };
+                
+                model.addRow(new Object[]{date, employeeId, statusText});
+            }
+            
+            resultSet.close();
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(panel, "Error loading training data: " + e.getMessage(),
+                                         "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+        
+        JScrollPane scrollPane = new JScrollPane(table);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        
+        return panel;
+    }
+    
+    private void saveAttendanceRecord(int code) {
+        try {
+            String query = "INSERT INTO attendance (employee_id, status, date) VALUES (?, ?, CURRENT_DATE())";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setInt(1, 1); // Assuming employee ID 1 for demo
+            statement.setInt(2, code);
+            statement.executeUpdate();
+            statement.close();
+            
+            JOptionPane.showMessageDialog(this, "Attendance recorded successfully", 
+                                         "Success", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error saving attendance: " + e.getMessage(), 
+                                         "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void saveTimesheetRecord(int code) {
+        try {
+            String query = "INSERT INTO timesheet (employee_id, status, date) VALUES (?, ?, CURRENT_DATE())";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setInt(1, 1); // Assuming employee ID 1 for demo
+            statement.setInt(2, code);
+            statement.executeUpdate();
+            statement.close();
+            
+            JOptionPane.showMessageDialog(this, "Timesheet status recorded successfully", 
+                                         "Success", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error saving timesheet status: " + e.getMessage(), 
+                                         "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void saveTrainingRecord(int code) {
+        try {
+            String query = "INSERT INTO trainings (employee_id, status, date) VALUES (?, ?, CURRENT_DATE())";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setInt(1, 1); // Assuming employee ID 1 for demo
+            statement.setInt(2, code);
+            statement.executeUpdate();
+            statement.close();
+            
+            JOptionPane.showMessageDialog(this, "Training status recorded successfully", 
+                                         "Success", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error saving training status: " + e.getMessage(), 
+                                         "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    public static void main(String[] args) {
+        try {
+            // Set look and feel to system default
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        SwingUtilities.invokeLater(() -> {
+            EmployeeManagementSystem app = new EmployeeManagementSystem();
+            app.setVisible(true);
+        });
+    }
+}
