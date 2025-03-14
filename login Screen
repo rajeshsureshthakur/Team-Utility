@@ -1,0 +1,224 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+
+public class LoginScreen extends JFrame {
+    // Database connection parameters
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/employee_db";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "password";
+    
+    private JTextField soeidField;
+    private JPasswordField passcodeField;
+    private JButton loginButton;
+    private JLabel statusLabel;
+    private Connection connection;
+    private Image backgroundImage;
+    
+    public LoginScreen() {
+        connectToDatabase();
+        loadBackgroundImage();
+        initializeUI();
+    }
+    
+    private void connectToDatabase() {
+        try {
+            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            System.out.println("Connected to database successfully");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage(), 
+                                         "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void loadBackgroundImage() {
+        try {
+            // Replace with your actual image path
+            backgroundImage = new ImageIcon(getClass().getResource("/images/background.jpg")).getImage();
+            
+            // If you want to load from a file path instead:
+            // backgroundImage = new ImageIcon("path/to/your/image.jpg").getImage();
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Use a default color if image fails to load
+            backgroundImage = null;
+        }
+    }
+    
+    private void initializeUI() {
+        setTitle("Employee Portal Login");
+        setSize(400, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        
+        // Create a panel with a background image
+        JPanel mainPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (backgroundImage != null) {
+                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                } else {
+                    g.setColor(new Color(240, 240, 240));
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                }
+            }
+        };
+        mainPanel.setLayout(new BorderLayout());
+        
+        // Create a semi-transparent panel for login components
+        JPanel loginPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(new Color(255, 255, 255, 200));
+                g.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+            }
+        };
+        loginPanel.setLayout(new GridBagLayout());
+        loginPanel.setOpaque(false);
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        
+        // Application title
+        JLabel titleLabel = new JLabel("Employee Portal", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        loginPanel.add(titleLabel, gbc);
+        
+        // SOEID label and field
+        JLabel soeidLabel = new JLabel("SOEID:");
+        soeidLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        loginPanel.add(soeidLabel, gbc);
+        
+        soeidField = new JTextField(15);
+        soeidField.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        loginPanel.add(soeidField, gbc);
+        
+        // Passcode label and field
+        JLabel passcodeLabel = new JLabel("Passcode:");
+        passcodeLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        loginPanel.add(passcodeLabel, gbc);
+        
+        passcodeField = new JPasswordField(15);
+        passcodeField.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        loginPanel.add(passcodeField, gbc);
+        
+        // Login button
+        loginButton = new JButton("Login");
+        loginButton.setFont(new Font("Arial", Font.BOLD, 14));
+        loginButton.setBackground(new Color(79, 159, 243));
+        loginButton.setForeground(Color.WHITE);
+        loginButton.setFocusPainted(false);
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        loginPanel.add(loginButton, gbc);
+        
+        // Status label for displaying messages
+        statusLabel = new JLabel("", SwingConstants.CENTER);
+        statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        statusLabel.setForeground(Color.RED);
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        loginPanel.add(statusLabel, gbc);
+        
+        // Add action listener to the login button
+        loginButton.addActionListener(e -> validateLogin());
+        
+        // Add action listener to the password field to respond to Enter key
+        passcodeField.addActionListener(e -> validateLogin());
+        
+        // Add the login panel to the main panel with some margins
+        mainPanel.add(Box.createVerticalStrut(1), BorderLayout.NORTH);
+        mainPanel.add(Box.createHorizontalStrut(1), BorderLayout.WEST);
+        mainPanel.add(Box.createHorizontalStrut(1), BorderLayout.EAST);
+        mainPanel.add(Box.createVerticalStrut(1), BorderLayout.SOUTH);
+        
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+        centerPanel.setOpaque(false);
+        centerPanel.add(loginPanel);
+        
+        mainPanel.add(centerPanel, BorderLayout.CENTER);
+        
+        // Add the main panel to the frame
+        add(mainPanel);
+    }
+    
+    private void validateLogin() {
+        String soeid = soeidField.getText();
+        String passcode = new String(passcodeField.getPassword());
+        
+        if (soeid.isEmpty() || passcode.isEmpty()) {
+            statusLabel.setText("Please enter both SOEID and passcode");
+            return;
+        }
+        
+        try {
+            // Query to check if the credentials are valid
+            // Assuming 'users' table has columns 'username' (or 'soeid') and 'password'
+            String query = "SELECT id, username FROM users WHERE username = ? AND password = ?";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setString(1, soeid);
+            statement.setString(2, passcode);  // In a real app, you'd use password hashing
+            
+            ResultSet resultSet = statement.executeQuery();
+            
+            if (resultSet.next()) {
+                int userId = resultSet.getInt("id");
+                // Login successful
+                JOptionPane.showMessageDialog(this, "Login successful", 
+                                             "Success", JOptionPane.INFORMATION_MESSAGE);
+                
+                // Close the login screen
+                dispose();
+                
+                // Open the main application screen
+                SwingUtilities.invokeLater(() -> {
+                    EmployeeManagementSystem app = new EmployeeManagementSystem(userId);
+                    app.setVisible(true);
+                });
+            } else {
+                // Login failed
+                statusLabel.setText("Invalid SOEID or passcode");
+                passcodeField.setText("");
+            }
+            
+            resultSet.close();
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            statusLabel.setText("Database error: " + e.getMessage());
+        }
+    }
+    
+    public static void main(String[] args) {
+        try {
+            // Set look and feel to system default
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        SwingUtilities.invokeLater(() -> {
+            LoginScreen loginScreen = new LoginScreen();
+            loginScreen.setVisible(true);
+        });
+    }
+}
