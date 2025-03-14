@@ -1,43 +1,36 @@
-WITH week_data AS (
-    SELECT 
-        a.employee_id,
-        TRUNC(a.attendance_date, 'IW') AS week_start,  -- Get Monday of the week
-        SUM(CASE WHEN a.status = 1 THEN 1 ELSE 0 END) AS present_count
-    FROM attendance a
-    JOIN users u ON a.employee_id = u.employee_id
-    WHERE 
-        u.team_id IN (1, 2, 34)
-        AND a.attendance_date >= TRUNC(SYSDATE, 'IW') - (3 * 7)  -- Last 4 weeks
-        AND a.attendance_date <= CASE 
-            WHEN TO_CHAR(SYSDATE, 'D') = '2' THEN TRUNC(SYSDATE, 'IW') - 1  -- If Monday, go back a week
-            ELSE TRUNC(SYSDATE, 'IW') + 4  -- Otherwise, include current week
-        END
-    GROUP BY a.employee_id, TRUNC(a.attendance_date, 'IW')
-),
-week_ranges AS (
+WITH week_ranges AS (
     SELECT 
         TRUNC(SYSDATE, 'IW') - (3 * 7) AS week_4_start, TRUNC(SYSDATE, 'IW') - (3 * 7) + 4 AS week_4_end,
         TRUNC(SYSDATE, 'IW') - (2 * 7) AS week_3_start, TRUNC(SYSDATE, 'IW') - (2 * 7) + 4 AS week_3_end,
         TRUNC(SYSDATE, 'IW') - (1 * 7) AS week_2_start, TRUNC(SYSDATE, 'IW') - (1 * 7) + 4 AS week_2_end,
         TRUNC(SYSDATE, 'IW') AS week_1_start, TRUNC(SYSDATE, 'IW') + 4 AS week_1_end
     FROM dual
+),
+week_data AS (
+    SELECT 
+        a.employee_id,
+        TRUNC(a.attendance_date, 'IW') AS week_start, -- Get Monday of the week
+        SUM(CASE WHEN a.status = 1 THEN 1 ELSE 0 END) AS present_count
+    FROM attendance a
+    JOIN users u ON a.employee_id = u.employee_id
+    WHERE 
+        u.team_id IN (1, 2, 34)
+        AND a.attendance_date >= TRUNC(SYSDATE, 'IW') - (3 * 7)  -- Get past 4 weeks
+        AND a.attendance_date <= CASE 
+            WHEN TO_CHAR(SYSDATE, 'D') = '2' THEN TRUNC(SYSDATE, 'IW') - 1  -- If Monday, go back a week
+            ELSE TRUNC(SYSDATE, 'IW') + 4  -- Otherwise, include current week
+        END
+    GROUP BY a.employee_id, TRUNC(a.attendance_date, 'IW')
 )
 SELECT 
     u.name AS employee_name,
-    TO_CHAR(wr.week_4_start, 'DD/MM') || '-' || TO_CHAR(wr.week_4_end, 'DD/MM') AS week_4,
-    COALESCE(MAX(CASE WHEN wd.week_start = wr.week_4_start THEN present_count END), 0) AS count_week_4,
-    
-    TO_CHAR(wr.week_3_start, 'DD/MM') || '-' || TO_CHAR(wr.week_3_end, 'DD/MM') AS week_3,
-    COALESCE(MAX(CASE WHEN wd.week_start = wr.week_3_start THEN present_count END), 0) AS count_week_3,
-
-    TO_CHAR(wr.week_2_start, 'DD/MM') || '-' || TO_CHAR(wr.week_2_end, 'DD/MM') AS week_2,
-    COALESCE(MAX(CASE WHEN wd.week_start = wr.week_2_start THEN present_count END), 0) AS count_week_2,
-
-    TO_CHAR(wr.week_1_start, 'DD/MM') || '-' || TO_CHAR(wr.week_1_end, 'DD/MM') AS week_1,
-    COALESCE(MAX(CASE WHEN wd.week_start = wr.week_1_start THEN present_count END), 0) AS count_week_1
+    COALESCE(MAX(CASE WHEN wd.week_start = wr.week_4_start THEN present_count END), 0) AS "Week_4",
+    COALESCE(MAX(CASE WHEN wd.week_start = wr.week_3_start THEN present_count END), 0) AS "Week_3",
+    COALESCE(MAX(CASE WHEN wd.week_start = wr.week_2_start THEN present_count END), 0) AS "Week_2",
+    COALESCE(MAX(CASE WHEN wd.week_start = wr.week_1_start THEN present_count END), 0) AS "Week_1"
 FROM users u
 LEFT JOIN week_data wd ON u.employee_id = wd.employee_id
 CROSS JOIN week_ranges wr
 WHERE u.team_id IN (1, 2, 34)
-GROUP BY u.name, wr.week_4_start, wr.week_4_end, wr.week_3_start, wr.week_3_end, wr.week_2_start, wr.week_2_end, wr.week_1_start, wr.week_1_end
+GROUP BY u.name, wr.week_4_start, wr.week_3_start, wr.week_2_start, wr.week_1_start
 ORDER BY u.name;
