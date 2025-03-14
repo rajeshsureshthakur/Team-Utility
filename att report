@@ -1,0 +1,23 @@
+WITH week_data AS (
+    SELECT 
+        employee_id,
+        TRUNC(attendance_date, 'IW') AS week_start,  -- Get Monday of that week
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS present_count
+    FROM attendance
+    WHERE 
+        attendance_date >= TRUNC(SYSDATE, 'IW') - (3 * 7)  -- Last 4 weeks
+        AND attendance_date <= CASE 
+            WHEN TO_CHAR(SYSDATE, 'D') = '2' THEN TRUNC(SYSDATE, 'IW') - 1  -- If Monday, exclude this week
+            ELSE TRUNC(SYSDATE, 'IW') + 4  -- Else include this week till Friday
+        END
+    GROUP BY employee_id, TRUNC(attendance_date, 'IW')
+)
+SELECT 
+    employee_id,
+    COALESCE(MAX(CASE WHEN week_start = TRUNC(SYSDATE, 'IW') - (3 * 7) THEN present_count END), 0) AS week_4,
+    COALESCE(MAX(CASE WHEN week_start = TRUNC(SYSDATE, 'IW') - (2 * 7) THEN present_count END), 0) AS week_3,
+    COALESCE(MAX(CASE WHEN week_start = TRUNC(SYSDATE, 'IW') - (1 * 7) THEN present_count END), 0) AS week_2,
+    COALESCE(MAX(CASE WHEN week_start = TRUNC(SYSDATE, 'IW') THEN present_count END), 0) AS week_1
+FROM week_data
+GROUP BY employee_id
+ORDER BY employee_id;
