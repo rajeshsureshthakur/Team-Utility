@@ -34,3 +34,17 @@ CROSS JOIN week_ranges wr
 WHERE u.team_id IN (1, 2, 34)
 GROUP BY u.name, wr.week_4_start, wr.week_3_start, wr.week_2_start, wr.week_1_start
 ORDER BY u.name;
+
+
+DECLARE
+    sql_stmt VARCHAR2(4000);
+BEGIN
+    sql_stmt := 'SELECT u.name AS employee_name, 
+                        SUM(CASE WHEN a.attendance_date BETWEEN TO_DATE(''04/03/2024'', ''DD/MM/YYYY'') AND TO_DATE(''08/03/2024'', ''DD/MM/YYYY'') THEN 1 ELSE 0 END) AS "04/03-08/03",
+                        SUM(CASE WHEN a.attendance_date BETWEEN TO_DATE(''11/03/2024'', ''DD/MM/YYYY'') AND TO_DATE(''15/03/2024'', ''DD/MM/YYYY'') THEN 1 ELSE 0 END) AS "11/03-15/03"
+                 FROM users u 
+                 LEFT JOIN attendance a ON u.employee_id = a.employee_id 
+                 WHERE u.team_id IN (1, 2, 34)
+                 GROUP BY u.name';
+    EXECUTE IMMEDIATE sql_stmt;
+END;
