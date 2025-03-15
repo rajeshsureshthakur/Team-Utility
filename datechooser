@@ -1,0 +1,48 @@
+import com.toedter.calendar.JDateChooser;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Date;
+
+public class DatePickerExample {
+    public static void main(String[] args) {
+        // Create JFrame
+        JFrame frame = new JFrame("Date Picker Example");
+        frame.setSize(400, 200);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new FlowLayout());
+
+        // Label to show selected date
+        JLabel dateLabel = new JLabel("Selected Date: None");
+
+        // JDateChooser (Calendar Picker)
+        JDateChooser dateChooser = new JDateChooser();
+        dateChooser.setDateFormatString("yyyy-MM-dd"); // Date format
+
+        // Button to get selected date
+        JButton selectButton = new JButton("Select Date");
+
+        // Action Listener to get selected date
+        selectButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Date selectedDate = dateChooser.getDate(); // Get selected date
+                if (selectedDate != null) {
+                    dateLabel.setText("Selected Date: " + selectedDate.toString()); // Update label
+                } else {
+                    dateLabel.setText("No Date Selected");
+                }
+            }
+        });
+
+        // Add components to frame
+        frame.add(new JLabel("Choose Date:"));
+        frame.add(dateChooser);
+        frame.add(selectButton);
+        frame.add(dateLabel);
+
+        // Show frame
+        frame.setVisible(true);
+    }
+}
