@@ -4,3 +4,12 @@ JOIN timesheet t ON u.userid = t.userid
 WHERE t.flag = 2
 AND EXTRACT(YEAR FROM t.date_field) = EXTRACT(YEAR FROM SYSDATE) 
 AND EXTRACT(MONTH FROM t.date_field) = EXTRACT(MONTH FROM SYSDATE);
+
+
+SELECT u.userid
+FROM users u
+LEFT JOIN timesheet t ON u.userid = t.userid
+AND EXTRACT(YEAR FROM t.date_field) = EXTRACT(YEAR FROM SYSDATE) 
+AND EXTRACT(MONTH FROM t.date_field) = EXTRACT(MONTH FROM SYSDATE)
+WHERE t.flag IS NULL OR t.flag <> 2;
+
