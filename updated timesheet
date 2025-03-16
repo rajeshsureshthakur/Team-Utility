@@ -1,0 +1,59 @@
+import javax.swing.*;
+import java.awt.*;
+
+public class TimesheetDialog {
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> showTimesheetDialog());
+    }
+
+    private static void showTimesheetDialog() {
+        JDialog dialog = new JDialog((Frame) null, "Timesheet Reminder", true);
+        dialog.setSize(400, 200);
+        dialog.setLocationRelativeTo(null);
+        dialog.setLayout(new BorderLayout());
+
+        // Main panel
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        panel.setBackground(Color.WHITE);
+
+        // Label asking the question
+        JLabel label = new JLabel("Have you filled the timesheet?");
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        label.setFont(new Font("Arial", Font.BOLD, 14));
+        panel.add(label);
+
+        // Spacing
+        panel.add(Box.createRigidArea(new Dimension(0, 20)));
+
+        // Panel for buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(Color.WHITE);
+
+        // "YES" Button (Green)
+        JButton yesBtn = new JButton("YES");
+        yesBtn.setPreferredSize(new Dimension(80, 40));
+        yesBtn.setBackground(new Color(0, 200, 0)); // Green
+        yesBtn.setForeground(Color.WHITE);
+        yesBtn.setFocusPainted(false);
+
+        // "NO Project" Button (Red, Larger)
+        JButton noBtn = new JButton("NO Project");
+        noBtn.setPreferredSize(new Dimension(120, 40));
+        noBtn.setBackground(new Color(200, 0, 0)); // Red
+        noBtn.setForeground(Color.WHITE);
+        noBtn.setFocusPainted(false);
+
+        // Add buttons to panel
+        buttonPanel.add(yesBtn);
+        buttonPanel.add(noBtn);
+
+        // Add button panel to main panel
+        panel.add(buttonPanel);
+
+        // Add panel to dialog
+        dialog.add(panel, BorderLayout.CENTER);
+        dialog.setVisible(true);
+    }
+}
