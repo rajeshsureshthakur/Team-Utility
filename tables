@@ -89,3 +89,19 @@ WHEN MATCHED THEN
 WHEN NOT MATCHED THEN
     INSERT (user_soeid, status, timesheet_date) 
     VALUES (src.user_soeid, src.status, SYSDATE);
+
+
+
+MERGE INTO attendance t
+USING (
+    SELECT ? AS user_soeid, ? AS status, ? AS attendance_date FROM dual
+) src
+ON (t.user_soeid = src.user_soeid AND t.attendance_date = src.attendance_date)
+
+WHEN MATCHED THEN
+    UPDATE SET t.status = src.status
+
+WHEN NOT MATCHED THEN
+    INSERT (user_soeid, status, attendance_date) 
+    VALUES (src.user_soeid, src.status, src.attendance_date);
+
