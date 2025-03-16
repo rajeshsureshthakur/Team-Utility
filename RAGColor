@@ -1,0 +1,69 @@
+import javax.swing.*;
+import javax.swing.table.*;
+import java.awt.*;
+
+public class EmployeeTable {
+    public static void main(String[] args) {
+        String[] columns = {"S.No.", "Status", "Employee Name"};
+        DefaultTableModel model = new DefaultTableModel(columns, 0);
+        JTable table = new JTable(model) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make table cells not editable
+            }
+        };
+
+        // Set column widths
+        TableColumnModel columnModel = table.getColumnModel();
+        int[] columnWidths = {50, 100, 250}; // Adjust widths
+        for (int i = 0; i < columnWidths.length; i++) {
+            columnModel.getColumn(i).setPreferredWidth(columnWidths[i]);
+        }
+
+        // Apply custom renderer to the "Employee Name" column
+        int employeeNameColumnIndex = -1;
+        for (int i = 0; i < columns.length; i++) {
+            if (columns[i].equals("Employee Name")) {
+                employeeNameColumnIndex = i;
+                break;
+            }
+        }
+
+        if (employeeNameColumnIndex != -1) {
+            table.getColumnModel().getColumn(employeeNameColumnIndex).setCellRenderer(new RAGStatusRenderer());
+        }
+
+        // Sample data (S.No., Status, Employee Name)
+        model.addRow(new Object[]{1, "YES", "John Doe"});
+        model.addRow(new Object[]{2, "NO", "Jane Smith"});
+        model.addRow(new Object[]{3, "YES", "Alice Johnson"});
+        model.addRow(new Object[]{4, "NO", "Bob Brown"});
+
+        // Add table to frame
+        JFrame frame = new JFrame("Employee Table");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.add(new JScrollPane(table));
+        frame.setSize(500, 300);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+}
+
+// Custom cell renderer for highlighting Employee Name if Status is "NO"
+class RAGStatusRenderer extends DefaultTableCellRenderer {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+        // Get status value from the corresponding column
+        String status = (String) table.getValueAt(row, 1); // Status column index is 1
+        if ("NO".equals(status)) { // Correct string comparison
+            cell.setForeground(new Color(170, 0, 0)); // Dark red text
+            cell.setFont(cell.getFont().deriveFont(Font.BOLD)); // Make text bold
+        } else {
+            cell.setForeground(Color.BLACK); // Reset color for other rows
+        }
+
+        return cell;
+    }
+}
