@@ -75,3 +75,12 @@ CREATE TABLE IF NOT EXISTS trainings (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (employee_id) REFERENCES employees(id)
 );
+
+
+ MERGE INTO timesheet t
+            USING (SELECT ? AS userid, ? AS status, SYSDATE AS timesheet_date FROM dual) src
+            ON (t.userid = src.userid AND TRUNC(t.timessheet_date, 'MM') = TRUNC(SYSDATE, 'MM'))
+            WHEN MATCHED THEN
+                UPDATE SET t.status = src.status, t.timessheet_date = SYSDATE
+            WHEN NOT MATCHED THEN
+                INSERT (userid, status, timessheet_date) VALUES (src.userid, src.status, SYSDATE)
