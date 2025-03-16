@@ -79,12 +79,18 @@ CREATE TABLE IF NOT EXISTS trainings (
 
 MERGE INTO timesheet t
 USING (
-    SELECT ? AS userid, ? AS status, SYSDATE AS timesheet_date FROM dual
+    SELECT 'It23962' AS user_soeid, 2 AS status, SYSDATE AS timesheet_date FROM dual
 ) src
-ON (t.userid = src.userid AND TRUNC(t.timessheet_date, 'MM') = TRUNC(SYSDATE, 'MM'))
+ON (t.user_soeid = src.user_soeid AND TRUNC(t.timesheet_date, 'MM') = TRUNC(SYSDATE, 'MM'))
+
 WHEN MATCHED THEN
-    UPDATE SET 
-        t.status = src.status, 
-        t.timessheet_date = CASE WHEN t.timessheet_date != SYSDATE THEN SYSDATE ELSE t.timessheet_date END
+    UPDATE SET
+        t.status = src.status,
+        t.timesheet_date = CASE 
+            WHEN TRUNC(t.timesheet_date) != TRUNC(SYSDATE) THEN SYSDATE 
+            ELSE t.timesheet_date 
+        END
+
 WHEN NOT MATCHED THEN
-    INSERT (userid, status, timessheet_date) VALUES (src.userid, src.status, SYSDATE);
+    INSERT (user_soeid, status, timesheet_date) 
+    VALUES (src.user_soeid, src.status, SYSDATE);
