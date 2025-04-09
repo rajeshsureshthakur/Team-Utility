@@ -1,0 +1,48 @@
+<div id="release-container" style="display: none;">
+  [entry.releaseName]
+  <span class="release-entry" data-id="[entry._id]">[entry.releaseName]</span>
+  [/entry.releaseName]
+</div>
+
+
+  <p><strong>Select a Release:</strong></p>
+<select id="release-dropdown">
+  <option value="">-- Select Release --</option>
+</select>
+<button onclick="deleteSelectedRelease()">🗑 Delete</button>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Delayed so ConfiForms finishes rendering
+    setTimeout(() => {
+      const entries = document.querySelectorAll(".release-entry");
+      const dropdown = document.getElementById("release-dropdown");
+
+      entries.forEach(function (span) {
+        const releaseName = span.textContent.trim();
+        const releaseId = span.getAttribute("data-id");
+
+        if (releaseId && releaseName) {
+          const option = document.createElement("option");
+          option.value = releaseId;
+          option.text = releaseName;
+          dropdown.appendChild(option);
+        }
+      });
+    }, 500); // 500ms just to be safe
+  });
+
+  function deleteSelectedRelease() {
+    const dropdown = document.getElementById("release-dropdown");
+    const entryId = dropdown.value;
+
+    if (!entryId) {
+      alert("⚠️ Please select a release to delete.");
+      return;
+    }
+
+    if (confirm("Are you sure you want to delete this release?")) {
+      window.location.href = "?formName=releaseForm&action=delete&entryId=" + entryId;
+    }
+  }
+</script>
