@@ -1,0 +1,31 @@
+<p><strong>Available Releases:</strong></p>
+<select id="release-dropdown">
+  <option value="">-- Select Release --</option>
+  [entry.releaseName]
+    <option value="[entry.releaseName]">[entry.releaseName]</option>
+  [/entry.releaseName]
+</select>
+
+
+<style>
+  ul.release-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  ul.release-list li {
+    padding: 4px 0;
+    display: flex;
+    justify-content: space-between;
+    width: 300px;
+  }
+</style>
+
+<ul class="release-list">
+  [entry.releaseName]
+    <li>
+      <span>[entry.releaseName]</span>
+      <a href="?formName=releaseForm&action=delete&entryId=[entry._id]"
+         onclick="return confirm('Delete this release?')">🗑 Delete</a>
+    </li>
+  [/entry.releaseName]
+</ul>
