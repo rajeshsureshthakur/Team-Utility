@@ -1,0 +1,48 @@
+<p><strong>Select Release to Delete:</strong></p>
+
+<select id="delete-release-dropdown">
+  <option value="">-- Select Release --</option>
+</select>
+
+<br/><br/>
+<button id="delete-btn">Delete Selected Release</button>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const dropdown = document.getElementById("delete-release-dropdown");
+
+    // Find all release entries rendered in the page by ConfiForms ListView
+    const releaseSpans = document.querySelectorAll(".release-entry");
+
+    // Populate dropdown with releases and their corresponding ConfiForms entry _id
+    releaseSpans.forEach(span => {
+      const name = span.textContent.trim();
+      const id = span.getAttribute("data-id");
+
+      if (id && name) {
+        const option = document.createElement("option");
+        option.value = id;       // Store ConfiForms _id as value
+        option.text = name;      // Display release name
+        dropdown.appendChild(option);
+      }
+    });
+
+    // Add delete handler
+    document.getElementById("delete-btn").addEventListener("click", function () {
+      const entryId = dropdown.value;
+
+      if (!entryId) {
+        alert("⚠️ Please select a release to delete.");
+        return;
+      }
+
+      // Confirm with user
+      const confirmed = confirm("Are you sure you want to delete this release?");
+      if (!confirmed) return;
+
+      // Redirect to ConfiForms delete URL
+      const deleteURL = `?formName=releaseForm&action=delete&entryId=${entryId}`;
+      window.location.href = deleteURL;
+    });
+  });
+</script>
