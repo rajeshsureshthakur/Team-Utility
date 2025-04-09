@@ -1,0 +1,43 @@
+<div class="release-container" style="display: none;">
+  <span class="release-entry" data-id="[entry._id]">[entry.releaseName]</span>
+</div>
+
+
+<p><strong>Select a Release to Delete:</strong></p>
+<select id="release-dropdown">
+  <option value="">-- Select Release --</option>
+</select>
+<button onclick="deleteSelectedRelease()">🗑 Delete</button>
+
+<script>
+  // Populate dropdown from hidden spans
+  document.addEventListener("DOMContentLoaded", function () {
+    const entries = document.querySelectorAll(".release-entry");
+    const dropdown = document.getElementById("release-dropdown");
+
+    entries.forEach(function (span) {
+      const releaseName = span.textContent;
+      const releaseId = span.getAttribute("data-id");
+
+      const option = document.createElement("option");
+      option.value = releaseId;
+      option.text = releaseName;
+      dropdown.appendChild(option);
+    });
+  });
+
+  // Delete logic
+  function deleteSelectedRelease() {
+    const dropdown = document.getElementById("release-dropdown");
+    const entryId = dropdown.value;
+
+    if (!entryId) {
+      alert("Please select a release to delete.");
+      return;
+    }
+
+    if (confirm("Are you sure you want to delete this release?")) {
+      window.location.href = "?formName=releaseForm&action=delete&entryId=" + entryId;
+    }
+  }
+</script>
