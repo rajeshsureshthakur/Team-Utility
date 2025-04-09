@@ -1,0 +1,22 @@
+<p><strong>Available Releases:</strong></p>
+
+<select id="release-dropdown">
+  <option value="">-- Select Release --</option>
+  [entry.releaseName]
+    <option value="[entry.releaseName]">[entry.releaseName]</option>
+  [/entry.releaseName]
+</select>
+
+<br/><br/>
+
+[entry.releaseName]
+  <div>
+    🔹 [entry.releaseName]
+    [ifHasPermission:delete]
+      <button 
+        data-form-name="releaseForm" 
+        data-action="delete" 
+        data-id="[entry.id]">❌ Delete</button>
+    [/ifHasPermission]
+  </div>
+[/entry.releaseName]
