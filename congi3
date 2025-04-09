@@ -1,0 +1,20 @@
+<p><strong>Available Releases:</strong></p>
+<select id="release-dropdown">
+  <option value="">-- Select Release --</option>
+</select>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const dropdown = document.getElementById("release-dropdown");
+    const releases = Array.from(document.querySelectorAll(".release-values span"))
+                          .map(span => span.textContent.trim())
+                          .filter((v, i, a) => v && a.indexOf(v) === i); // unique & non-empty
+
+    releases.forEach(rel => {
+      const opt = document.createElement("option");
+      opt.value = rel;
+      opt.textContent = rel;
+      dropdown.appendChild(opt);
+    });
+  });
+</script>
