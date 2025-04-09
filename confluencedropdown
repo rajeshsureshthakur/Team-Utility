@@ -1,27 +1,57 @@
-<div id="release-container">
+<!-- Hidden storage div (you’ll edit & save the page to persist this data) -->
+<div id="release-store" style="display: none;">v1.0,v1.1,v2.0</div>
+
+<!-- Visible dropdown and controls -->
+<div>
+  <label for="release-dropdown"><strong>Select Release:</strong></label>
   <select id="release-dropdown"></select>
-  <input type="text" id="new-release" />
-  <button onclick="addRelease()">Add</button>
+  
+  <br><br>
+  
+  <input type="text" id="new-release" placeholder="Enter new release" />
+  <button onclick="addRelease()">Add Release</button>
+  <button onclick="deleteSelected()">Delete Selected</button>
 </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const dropdown = document.getElementById("release-dropdown");
-    const data = ["v1.0", "v1.1", "v2.0"];
+    const storeDiv = document.getElementById("release-store");
+
+    // Load releases from hidden div
+    let data = storeDiv.textContent.trim() ? storeDiv.textContent.trim().split(",") : [];
 
     function render() {
       dropdown.innerHTML = "";
-      data.forEach(r => {
+      data.forEach(release => {
         const opt = document.createElement("option");
-        opt.value = opt.text = r;
+        opt.value = opt.text = release;
         dropdown.appendChild(opt);
       });
+
+      // Also update the hidden store div for persistence
+      storeDiv.textContent = data.join(",");
     }
 
+    // Add a new release
     window.addRelease = function () {
-      const val = document.getElementById("new-release").value.trim();
-      if (val && !data.includes(val)) {
-        data.push(val);
+      const input = document.getElementById("new-release");
+      const value = input.value.trim();
+
+      if (value && !data.includes(value)) {
+        data.push(value);
+        input.value = "";
+        render();
+      } else {
+        alert("Invalid or duplicate release.");
+      }
+    };
+
+    // Delete the selected release
+    window.deleteSelected = function () {
+      const selected = dropdown.value;
+      if (selected && data.includes(selected)) {
+        data = data.filter(r => r !== selected);
         render();
       }
     };
