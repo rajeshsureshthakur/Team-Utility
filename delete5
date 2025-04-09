@@ -1,0 +1,24 @@
+<p><strong>Select a Release to Delete:</strong></p>
+<form id="delete-release-form">
+  <select id="release-to-delete" name="entryId">
+    <option value="">-- Select Release --</option>
+    [entry.releaseName]
+      <option value="[entry._id]">[entry.releaseName]</option>
+    [/entry.releaseName]
+  </select>
+  <button type="button" onclick="deleteSelectedRelease()">🗑 Delete</button>
+</form>
+
+<script>
+  function deleteSelectedRelease() {
+    const select = document.getElementById("release-to-delete");
+    const selectedId = select.value;
+    if (!selectedId) {
+      alert("Please select a release to delete.");
+      return;
+    }
+    if (confirm("Are you sure you want to delete this release?")) {
+      window.location.href = "?formName=releaseForm&action=delete&entryId=" + selectedId;
+    }
+  }
+</script>
