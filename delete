@@ -1,0 +1,8 @@
+<ul>
+  [entry.releaseName]
+    <li>
+      [entry.releaseName]
+      <a href="?formName=releaseForm&action=delete&entryId=[entry._id]">Delete</a>
+    </li>
+  [/entry.releaseName]
+</ul>
