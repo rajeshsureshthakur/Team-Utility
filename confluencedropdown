@@ -1,52 +1,31 @@
-<!-- Hidden container storing release values -->
-<div id="release-store" style="display:none;">
-  Release 1, Release 2, Release 3
+<div id="release-container">
+  <select id="release-dropdown"></select>
+  <input type="text" id="new-release" />
+  <button onclick="addRelease()">Add</button>
 </div>
 
-<!-- Visible UI -->
-<select id="release-dropdown"></select>
-<input type="text" id="new-release" placeholder="Enter new release"/>
-<button onclick="addRelease()">Add</button>
-<button onclick="deleteSelected()">Delete</button>
-
-<!-- Script -->
 <script>
-  function loadReleases() {
-    const rawData = document.getElementById("release-store").innerText;
-    const releases = rawData.split(',').map(r => r.trim()).filter(Boolean);
+  document.addEventListener("DOMContentLoaded", function () {
     const dropdown = document.getElementById("release-dropdown");
-    dropdown.innerHTML = "";
-    releases.forEach(r => {
-      const opt = document.createElement("option");
-      opt.value = opt.text = r;
-      dropdown.appendChild(opt);
-    });
-  }
+    const data = ["v1.0", "v1.1", "v2.0"];
 
-  function saveReleasesToPage(releases) {
-    document.getElementById("release-store").innerText = releases.join(', ');
-  }
-
-  function addRelease() {
-    const newRel = document.getElementById("new-release").value.trim();
-    if (!newRel) return;
-    const dropdown = document.getElementById("release-dropdown");
-    const releases = [...dropdown.options].map(opt => opt.value);
-    if (!releases.includes(newRel)) {
-      releases.push(newRel);
-      saveReleasesToPage(releases);
-      loadReleases();
+    function render() {
+      dropdown.innerHTML = "";
+      data.forEach(r => {
+        const opt = document.createElement("option");
+        opt.value = opt.text = r;
+        dropdown.appendChild(opt);
+      });
     }
-    document.getElementById("new-release").value = "";
-  }
 
-  function deleteSelected() {
-    const dropdown = document.getElementById("release-dropdown");
-    const selected = dropdown.value;
-    const releases = [...dropdown.options].map(opt => opt.value).filter(r => r !== selected);
-    saveReleasesToPage(releases);
-    loadReleases();
-  }
+    window.addRelease = function () {
+      const val = document.getElementById("new-release").value.trim();
+      if (val && !data.includes(val)) {
+        data.push(val);
+        render();
+      }
+    };
 
-  loadReleases();
+    render();
+  });
 </script>
