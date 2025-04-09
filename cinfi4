@@ -1,0 +1,24 @@
+<ul>
+  [entry.releaseName]
+    <li>
+      [entry.releaseName]
+      <ac:link ac:macro-name="ConfiForms Entry Control">
+        <ac:parameter ac:name="formName">releaseForm</ac:parameter>
+        <ac:parameter ac:name="action">delete</ac:parameter>
+        <ac:parameter ac:name="entryId">[entry._id]</ac:parameter>
+        <ac:plain-text-body><![CDATA[
+          <button>Delete</button>
+        ]]></ac:plain-text-body>
+      </ac:link>
+    </li>
+  [/entry.releaseName]
+</ul>
+
+
+<script>
+  document.addEventListener("click", function (e) {
+    if (e.target.tagName === "BUTTON") {
+      setTimeout(() => location.reload(), 800); // wait for action to complete
+    }
+  });
+</script>
