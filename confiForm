@@ -1,0 +1,14 @@
+<select>
+  <option value="">-- Select Release --</option>
+  [entry.releaseName:sort]
+  <option value="[entry.releaseName]">[entry.releaseName]</option>
+  [/entry.releaseName]
+</select>
+
+[ifHasPermission:delete]
+  <button data-form-name="releaseForm" data-action="delete" data-id="[entry.id]">
+    ❌ Delete [entry.releaseName]
+  </button>
+[/ifHasPermission]
+
+
