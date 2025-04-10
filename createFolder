@@ -1,32 +1,44 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Get the current date in MMdd format
-for /f %%a in ('powershell -NoProfile -Command "Get-Date -Format MMdd"') do set datePart=%%a
+:: Step 1: Set base directory to "RESULTS" one level above current script folder
+set "baseDir=%~dp0..\RESULTS"
 
-:: Set the base path - RESULTS is one level up from current directory
-set baseDir=%~dp0..\RESULTS
-
-:: Normalize the path
-pushd %baseDir%
-set baseDir=%CD%
+:: Step 2: Normalize path
+pushd "%baseDir%" >nul 2>&1
+if errorlevel 1 (
+    echo Creating RESULTS directory...
+    mkdir "%baseDir%"
+)
 popd
 
-:: Initialize index
-set index=1
+:: Step 3: Get current date in MMDD format
+for /f "tokens=2 delims==." %%A in ('"wmic os get localdatetime /value"') do set "dt=%%A"
+set "today=%dt:~4,2%%dt:~6,2%"
 
+:: Step 4: Find next available folder name
+set "counter=1"
 :checkFolder
-set folderName=RESULTS_%datePart%_!index!
-set fullPath=%baseDir%\!folderName!
-
-if exist "!fullPath!" (
-    set /a index+=1
-    goto checkFolder
+set "folderName=RESULTS_%today%_!counter!"
+if exist "%baseDir%\!folderName!" (
+    set /a counter+=1
+    goto :checkFolder
 )
 
-:: Create the new folder
-mkdir "!fullPath!"
-echo Created folder: !fullPath!
+:: Step 5: Create final folder and subdirectories
+set "fullPath=%baseDir%\!folderName!"
+mkdir "!fullPath!\Input_Files"
+mkdir "!fullPath!\Output_Files"
+mkdir "!fullPath!\Test_Files"
 
-:: Optional: do more actions
-:: java MyApp > "!fullPath!\output.log" 2>&1
+echo ✅ Created: !folderName!
+echo 📂 With subfolders:
+echo     - Input_Files
+echo     - Output_Files
+echo     - Test_Files
+
+:: Optional: Open the folder
+:: explorer "!fullPath!"
+
+endlocal
+exit /b 0
