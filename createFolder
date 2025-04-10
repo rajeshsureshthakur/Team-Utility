@@ -1,44 +1,36 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Step 1: Set base directory to "RESULTS" one level above current script folder
-set "baseDir=%~dp0..\RESULTS"
+:: Set base folder paths
+set BASE_FOLDER=%~dp0
+set PARENT_FOLDER=%BASE_FOLDER%..\RESULTS
+set "PARENT_FOLDER=%~dp0..\RESULTS"
+for %%A in ("%PARENT_FOLDER%") do set "PARENT_FOLDER=%%~fA"
 
-:: Step 2: Normalize path
-pushd "%baseDir%" >nul 2>&1
-if errorlevel 1 (
-    echo Creating RESULTS directory...
-    mkdir "%baseDir%"
+:: Get today's date in MMDD format
+for /f "tokens=1-3 delims=/ " %%a in ('date /t') do (
+    set mm=%%a
+    set dd=%%b
 )
-popd
+set DATE=%mm%%dd%
 
-:: Step 3: Get current date in MMDD format
-for /f "tokens=2 delims==." %%A in ('"wmic os get localdatetime /value"') do set "dt=%%A"
-set "today=%dt:~4,2%%dt:~6,2%"
-
-:: Step 4: Find next available folder name
-set "counter=1"
-:checkFolder
-set "folderName=RESULTS_%today%_!counter!"
-if exist "%baseDir%\!folderName!" (
-    set /a counter+=1
-    goto :checkFolder
+:: Find the next folder number
+set COUNT=1
+:checkfolder
+set FOLDER_NAME=RESULTS_%DATE%_%COUNT%
+if exist "%PARENT_FOLDER%\%FOLDER_NAME%" (
+    set /a COUNT+=1
+    goto checkfolder
 )
 
-:: Step 5: Create final folder and subdirectories
-set "fullPath=%baseDir%\!folderName!"
-mkdir "!fullPath!\Input_Files"
-mkdir "!fullPath!\Output_Files"
-mkdir "!fullPath!\Test_Files"
+:: Create main folder
+set NEW_FOLDER=%PARENT_FOLDER%\%FOLDER_NAME%
+mkdir "%NEW_FOLDER%"
+mkdir "%NEW_FOLDER%\Input_Files"
+mkdir "%NEW_FOLDER%\Output_Files"
+mkdir "%NEW_FOLDER%\Test_Files"
 
-echo ✅ Created: !folderName!
-echo 📂 With subfolders:
-echo     - Input_Files
-echo     - Output_Files
-echo     - Test_Files
+:: ✅ Call Java file with path as argument
+java -cp yourClasspath YourJavaFile "%NEW_FOLDER%"
 
-:: Optional: Open the folder
-:: explorer "!fullPath!"
-
-endlocal
-exit /b 0
+echo Folder created at: %NEW_FOLDER%
