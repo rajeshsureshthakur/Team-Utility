@@ -1,23 +1,32 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Get current date components
+:: Get the current date in MMdd format
 for /f %%a in ('powershell -NoProfile -Command "Get-Date -Format MMdd"') do set datePart=%%a
+
+:: Set the base path - RESULTS is one level up from current directory
+set baseDir=%~dp0..\RESULTS
+
+:: Normalize the path
+pushd %baseDir%
+set baseDir=%CD%
+popd
 
 :: Initialize index
 set index=1
 
 :checkFolder
-set folderName=RESULTS_%datePart%_%index%
+set folderName=RESULTS_%datePart%_!index!
+set fullPath=%baseDir%\!folderName!
 
-if exist "%folderName%" (
+if exist "!fullPath!" (
     set /a index+=1
     goto checkFolder
 )
 
 :: Create the new folder
-mkdir "%folderName%"
-echo Created folder: %folderName%
+mkdir "!fullPath!"
+echo Created folder: !fullPath!
 
-:: Optional: do more stuff here, like redirect output into this folder
-:: java MyApp > "%folderName%\output.log" 2>&1
+:: Optional: do more actions
+:: java MyApp > "!fullPath!\output.log" 2>&1
