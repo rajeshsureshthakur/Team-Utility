@@ -1,0 +1,23 @@
+@echo off
+setlocal enabledelayedexpansion
+
+:: Get current date components
+for /f %%a in ('powershell -NoProfile -Command "Get-Date -Format MMdd"') do set datePart=%%a
+
+:: Initialize index
+set index=1
+
+:checkFolder
+set folderName=RESULTS_%datePart%_%index%
+
+if exist "%folderName%" (
+    set /a index+=1
+    goto checkFolder
+)
+
+:: Create the new folder
+mkdir "%folderName%"
+echo Created folder: %folderName%
+
+:: Optional: do more stuff here, like redirect output into this folder
+:: java MyApp > "%folderName%\output.log" 2>&1
